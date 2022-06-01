@@ -4,7 +4,7 @@ import codecs
 import os 
 import sys
 
-from pyrsistent import T
+
 """
 definimos tokens en una lista []
 """ 
