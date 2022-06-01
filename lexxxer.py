@@ -3,6 +3,8 @@ import re
 import codecs 
 import os 
 import sys
+
+from pyrsistent import T
 """
 definimos tokens en una lista []
 """ 
@@ -44,7 +46,7 @@ t_LT = r'<'
 t_LTE = r'<='
 t_GT = r'>'
 t_GTE = r'>='
-t_LPARENT = r'\('
+t_LPARENT = r'\('\/\*(\s*|.*?)*\*\/)|(\/\/.*
 t_RPARENT = r'\)'
 t_COMMA = r','
 t_SEMMICOLON = r';' 
@@ -70,4 +72,32 @@ no devuelve ningun valor porque no es algo
 que nos interese procesadar 
 """
 def t_COMMENT(t):
-    r'\/\*(\s*|.*?)*\*\/)|(\/\/.*'
+    r'\*[^*]*\*+(?:[^/*][^*]*\*+)*'
+    pass #reconoce el comentario pero no devuelve nada por ser comentario 
+
+def r_NUMBER(t):
+    r'\d+' #\d ya reconoce cualquier digito decimal por lo menos 1 vez
+    t.value = int(t.value) #no reconocemos float 
+    return t 
+
+"""
+si un token no es reconocido por nuestro lenguaje que estamos
+creando 
+"""
+def t_error(t):
+    print "caracter ilegal '%s'" %t.value[0]
+    t.lexer.sikip(1)
+
+directorio = '/home/rick/Desktop/repositorios/analizador-lexico/tests/'
+archivo = buscarFichero(directorio)
+test = directorio+archivo
+fp = codecs.open(test,"r","utf-8")
+cadena = fp.read()
+fp.close()
+
+analizador.input(cadena)
+
+while True: 
+    tok = analizador.token()
+    if not tok: break #si no encuentra token que se detenga
+    print tok #si se encuentra simplemente imprimir el token
