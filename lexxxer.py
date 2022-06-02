@@ -1,8 +1,6 @@
 import ply.lex as lex 
-import re 
 import codecs 
 import os 
-import sys
 
 reservadas = ['BEGIN','END','IF','THEN','WHILE','DO', 
 'CALL','CONST','VAR','PROCEDURE','OUT','IN','ELSE']
