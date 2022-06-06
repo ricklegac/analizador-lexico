@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="RE2NFA2DFA2MFA/src"/>
+	<classpathentry kind="output" path="RE2NFA2DFA2MFA/bin"/>
+</classpath>
