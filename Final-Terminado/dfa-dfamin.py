@@ -1,4 +1,7 @@
-# Minimise DFA
+'''
+Conversion de DFA a un MIN DFA
+Ricardo Leguizamon - Diego Seo, Compiladores 2022
+'''
 
 import json 
 import sys
@@ -51,7 +54,7 @@ class DisjointSet(object):
 
 def reachable_dfs(node):
     global dfa, reachable_states
-    for val in dfa['transition_function']:
+    for val in dfa['transiciones']:
         start = val[0]
         inp = val[1]
         end = val[2]
@@ -62,35 +65,35 @@ def reachable_dfs(node):
                 reachable_dfs(end)
 
 
-def remove_unreachable_states():
+def delete_estado_impuro():
     global dfa, reachable_states
 
-    for st in dfa['start_states']:
+    for st in dfa['estado_inicial']:
         reachable_states.append(st)
         reachable_dfs(st)
 
-    dfa['states'] = [state for state in dfa['states'] if state in reachable_states]
+    dfa['estados'] = [state for state in dfa['estados'] if state in reachable_states]
     
-    dfa['final_states'] = [state for state in dfa['final_states'] if state in reachable_states]
+    dfa['estado_final'] = [state for state in dfa['estado_final'] if state in reachable_states]
 
     temp = []
 
-    for val in dfa['transition_function']:
+    for val in dfa['transiciones']:
         if val[0] in reachable_states:
             temp.append(val)
 
-    dfa['transition_function'] = temp
+    dfa['transiciones'] = temp
 
 def order_tuple(a,b):
 	return (a,b) if a < b else (b,a)
 
 def get_to_state(start, inp):
     global dfa
-    for val in dfa['transition_function']:
+    for val in dfa['transiciones']:
         if start == val[0] and inp == val[1]:
             return val[2]
 
-def minimiseDFA():
+def minimizar():
     global dfa, split_needed, dis_set
     split_needed = 1
     prev_states = []
@@ -99,8 +102,8 @@ def minimiseDFA():
     non_final = []
     final = []
 
-    for state in dfa['states']:
-        if state not in dfa['final_states']:
+    for state in dfa['estados']:
+        if state not in dfa['estado_final']:
             non_final.append(state)
         else:
             final.append(state)
@@ -110,11 +113,11 @@ def minimiseDFA():
 
     group = {}
 
-    sorted_states = sorted(dfa['states'])
+    sorted_states = sorted(dfa['estados'])
 
     for i, st1 in enumerate(sorted_states):
         for st2 in sorted_states[i+1 : ]:
-            group[(st1, st2)] = (st1 in dfa['final_states']) == (st2 in dfa['final_states'])
+            group[(st1, st2)] = (st1 in dfa['estado_final']) == (st2 in dfa['estado_final'])
 
     split_needed = True
 
@@ -127,7 +130,7 @@ def minimiseDFA():
                 if not group[(st1, st2)]:
                     continue
 
-                for letter in dfa['letters']:
+                for letter in dfa['simbolos']:
                     to1 = get_to_state(st1, letter)
                     to2 = get_to_state(st2, letter)
 
@@ -139,23 +142,23 @@ def minimiseDFA():
                         if not is_same_grp:
                             break
 
-    dis_set = DisjointSet(dfa['states'])
+    dis_set = DisjointSet(dfa['estados'])
 
-    # form new states
+    # form new estados
     for st_pair, is_same_grp in group.items():
         if is_same_grp:
             dis_set.union(st_pair[0], st_pair[1])
 
     dfa_new_states = []
-    for state in dfa['states']:
+    for state in dfa['estados']:
         new = dis_set.find(state)
         if new not in dfa_new_states:
             dfa_new_states.append(new)
             
-    dfa['states'] = dfa_new_states
+    dfa['estados'] = dfa_new_states
     
     dfa_new_transition = []
-    for val in dfa['transition_function']:
+    for val in dfa['transiciones']:
         start = val[0]
         inp = val[1]
         end = val[2]
@@ -167,26 +170,26 @@ def minimiseDFA():
         transition.append(new_state2)
         if transition not in dfa_new_transition:
             dfa_new_transition.append(transition)
-    dfa['transition_function'] = dfa_new_transition
+    dfa['transiciones'] = dfa_new_transition
 
-    # dfa['final_states'] = dis_set.get()   
-    final_states = []
-    for fi_state in dfa['final_states']:
+    # dfa['estado_final'] = dis_set.get()   
+    estado_final = []
+    for fi_state in dfa['estado_final']:
         fi_set = dis_set.find(fi_state)
-        if fi_set not in final_states:
-            final_states.append(fi_set)
+        if fi_set not in estado_final:
+            estado_final.append(fi_set)
 
-    dfa['final_states'] = final_states
+    dfa['estado_final'] = estado_final
     
-    start_states = []
-    for st_state in dfa['start_states']:
+    estado_inicial = []
+    for st_state in dfa['estado_inicial']:
         st_set = dis_set.find(st_state)
-        if st_set not in start_states:
-            start_states.append(st_set)
+        if st_set not in estado_inicial:
+            estado_inicial.append(st_set)
     
-    dfa['start_states'] = start_states
+    dfa['estado_inicial'] = estado_inicial
 
-def load_dfa():
+def cargar_dfa():
     global dfa
     with open(sys.argv[1], 'r') as inpjson:
         dfa = json.loads(inpjson.read())
@@ -198,7 +201,7 @@ def out_min_dfa():
 
 
 if __name__ == "__main__":
-    load_dfa()
-    remove_unreachable_states()
-    minimiseDFA()
+    cargar_dfa()
+    delete_estado_impuro()
+    minimizar()
     out_min_dfa()
