@@ -1,10 +1,18 @@
-# Conversion from Regex to NFA
+'''
+Conversion de Expresion Regular a un NFA
+Ricardo Leguizamon - Diego Seo, Compiladores 2022
+'''
 
 import json
-import sys
+import sys #interectuamos con el interprete para leer el archivo de entrada desde la terminal directamente
 
-non_symbols = ['+', '*', '.', '(', ')'] #no pudimos agregar el |
-nfa = {}
+
+'''
+los no simbolos son los identificadores para armar los patrones en 
+la definicion regular 
+'''
+non_symbols = ['+', '*', '.', '(', ')'] #no pudimos agregar el | 
+afn = {} #pila para guardar los estados del AFN
 
 class charType:
     SYMBOL = 1
@@ -32,8 +40,11 @@ class ExpressionTree:
         self.left = None
         self.right = None
     
-
-def make_exp_tree(regexp):
+'''
+Aca utilizamos la construccion de thompson 
+regexp es nuestro regex en postfix, aca construimos el NFA- ϵ #3b5 unicode 
+'''
+def exp_tree(regexp):
     stack = []
     for c in regexp:
         if c == "+":
@@ -53,6 +64,7 @@ def make_exp_tree(regexp):
         elif c == "(" or c == ")":
             continue  
         else:
+            #print("probar |")
             stack.append(ExpressionTree(charType.SYMBOL, c))
     return stack[0]
 
@@ -117,7 +129,7 @@ def do_kleene_star(exp_t):
 
 
 def arrange_transitions(state, states_done, symbol_table):
-    global nfa
+    global afn
 
     if state in states_done:
         return
@@ -125,14 +137,14 @@ def arrange_transitions(state, states_done, symbol_table):
     states_done.append(state)
 
     for symbol in list(state.next_state):
-        if symbol not in nfa['letters']:
-            nfa['letters'].append(symbol)
+        if symbol not in afn['simbolos']:
+            afn['simbolos'].append(symbol)
         for ns in state.next_state[symbol]:
             if ns not in symbol_table:
                 symbol_table[ns] = sorted(symbol_table.values())[-1] + 1
                 q_state = "Q" + str(symbol_table[ns])
-                nfa['states'].append(q_state)
-            nfa['transition_function'].append(["Q" + str(symbol_table[state]), symbol, "Q" + str(symbol_table[ns])])
+                afn['estados'].append(q_state)
+            afn['transiciones'].append(["Q" + str(symbol_table[state]), symbol, "Q" + str(symbol_table[ns])])
 
         for ns in state.next_state[symbol]:
             arrange_transitions(ns, states_done, symbol_table)
@@ -141,40 +153,32 @@ def notation_to_num(str):
     return int(str[1:])
 
 
-# def final_st_dfs(st):
-#     global nfa
-#     for val in nfa['transition_function']:
-#         if val[0] == st and val[1] == "$" and val[2] not in nfa["final_states"]:
-#             nfa["final_states"].append(val[2])
-#             final_st_dfs(val[2])
-
 def final_st_dfs():
-    global nfa
-    for st in nfa["states"]:
+    global afn
+    for st in afn["estados"]:
         count = 0
-        for val in nfa['transition_function']:
+        for val in afn['transiciones']:
             if val[0] == st and val[2] != st:
                 count += 1
-        if count == 0 and st not in nfa["final_states"]:
-            nfa["final_states"].append(st)
+        if count == 0 and st not in afn["estado_final"]:
+            afn["estado_final"].append(st)
 
 
 def arrange_nfa(fa):
-    global nfa
-    nfa['states'] = []
-    nfa['letters'] = []
-    nfa['transition_function'] = []
-    nfa['start_states'] = []
-    nfa['final_states'] = []
+    global afn
+    afn['estados'] = []
+    afn['simbolos'] = []
+    afn['transiciones'] = []
+    afn['estado_inicial'] = []
+    afn['estado_final'] = []
     q_1 = "Q" + str(1)
-    nfa['states'].append(q_1)
+    afn['estados'].append(q_1)
     arrange_transitions(fa[0], [], {fa[0] : 1})
     
-    st_num = [notation_to_num(i) for i in nfa['states']]
+    st_num = [notation_to_num(i) for i in afn['estados']]
 
-    nfa["start_states"].append("Q1")
-    # nfa["final_states"].append("Q" + str(sorted(st_num)[-1]))
-    # final_st_dfs(nfa["final_states"][0])
+    afn["estado_inicial"].append("Q1")
+
     final_st_dfs()
 
 
@@ -199,8 +203,12 @@ def add_concat(regex):
     res += regex[l - 1]
     return res
 
-
-def compute_postfix(regexp):
+'''
+infijo a posfijo
+stk es una pila que almacena de forma infija 
+orden que se toma:  . () * . +
+'''
+def inf_pos(regexp):
     stk = []
     res = ""
 
@@ -227,7 +235,8 @@ def compute_postfix(regexp):
 
 def polish_regex(regex):
     reg = add_concat(regex)
-    regg = compute_postfix(reg)
+    regg = inf_pos(reg)
+    #print(regg)
     return regg
 
 
@@ -237,16 +246,16 @@ def load_regex():
     return regex
 
 def output_nfa():
-    global nfa
-    with open(sys.argv[2], 'w') as outjson:
-        outjson.write(json.dumps(nfa, indent = 4))
+    global afn
+    with open(sys.argv[2], 'w') as outjson: 
+        outjson.write(json.dumps(afn, indent = 4))
 
 if __name__ == "__main__":
     r = load_regex()
     reg = r['regex']
     
     pr = polish_regex(reg)
-    et = make_exp_tree(pr)
+    et = exp_tree(pr)
     fa = compute_regex(et)
     arrange_nfa(fa)
     output_nfa()
