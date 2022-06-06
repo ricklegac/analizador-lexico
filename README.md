@@ -1,5 +1,5 @@
-# Asignación de teoría de autómatas 
-## Conversiones cubiertas:
+
+## Conversiones:
 
 1. Regex a AFN
 2. Convertir AFN a AFD
