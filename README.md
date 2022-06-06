@@ -6,7 +6,7 @@
 3. Minimizar AFD 
 
 ## Compilacion
-`python3 q<no>.py arg1 arg2`  done arg1 es el path del input y arg2 es el output
+`python3 <archivo>.py arg1 arg2`  done arg1 es el path del input y arg2 es el output
 
 ## Simbolos
 - '+' : union 
