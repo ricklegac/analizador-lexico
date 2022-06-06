@@ -42,7 +42,7 @@ t_PLUS = r'\+' #expresion regular para la suma, el slash para que detecte que es
 t_MINUS = r'\-'
 t_TIMES = r'\*'
 t_DIVIDE = r'/'
-t_ODD = r'ODD'
+t_ODD = r'ODD' 
 t_ASSING = r'='
 t_NE = r'<>'
 t_LT = r'<'

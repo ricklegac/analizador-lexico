@@ -129,14 +129,22 @@ def eval_symbol(exp_t):
     start.next_state[exp_t.value] = [end]
     return start, end
 
-
+'''
+do_concat 
+aca unificamos lo que es el lado izquierdo y derecho de lo que esta entre "." 
+. describe cualquier string simbolo 
+'''
 def do_concat(exp_t):
     left_nfa  = compute_regex(exp_t.left)
     right_nfa = compute_regex(exp_t.right)
 
     left_nfa[1].next_state['$'] = [right_nfa[0]]
     return left_nfa[0], right_nfa[1]
-
+'''
+do_union 
+aca unificamos lo que es el lado izquierdo y derecho de lo que esta entre "+" 
++ una o mas veces el simbolo
+'''
 
 def do_union(exp_t):
     start = Estado_AFN()
@@ -151,7 +159,14 @@ def do_union(exp_t):
 
     return start, end
 
+'''
+do_kleene
+llamamos a compute_regex que contiene el arbol de expansion
+obtenemos los estados iniciales y finales para la cerradura, 
+agregamos $ (vacio) 
+cerradura de kleene
 
+'''
 def do_kleene_star(exp_t):
     start = Estado_AFN()
     end = Estado_AFN()
@@ -200,6 +215,7 @@ def final_st_dfs():
             afn["estado_final"].append(st)
 
 
+
 def arrange_nfa(fa):
     global afn
     afn['estados'] = []
@@ -208,9 +224,10 @@ def arrange_nfa(fa):
     afn['estado_inicial'] = []
     afn['estado_final'] = []
     q_1 = "Q" + str(1)
+    print(q_1)
     afn['estados'].append(q_1)
     transiciones_m(fa[0], [], {fa[0] : 1})
-    
+    print(afn, " ")
     st_num = [a_num(i) for i in afn['estados']]
 
     afn["estado_inicial"].append("Q1")
@@ -294,7 +311,7 @@ def output_nfa():
 
 if __name__ == "__main__":
     r = load_regex()
-    reg = r['regex']
+    reg = r['regex'] 
     pr = polish_regex(reg)
     et = exp_tree(pr)
     fa = compute_regex(et)
