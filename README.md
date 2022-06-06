@@ -1,13 +1,12 @@
-# Asignación de teoría de autómatas
 
-## Conversiones cubiertas:
+## Conversiones:
 
 1. Regex a AFN
 2. Convertir AFN a AFD
 3. Minimizar AFD 
 
 ## Compilacion
-`python3 q<no>.py arg1 arg2`  done arg1 es el path del input y arg2 es el output
+`python3 <archivo>.py arg1 arg2`  done arg1 es el path del input y arg2 es el output
 
 ## Simbolos
 - '+' : union 
@@ -48,7 +47,7 @@ Archivo Json
 
 ## Problem 3: Minimizar AFD
 
-### Approach
+### Pasos
 1. Después de cargar el DFA, primero eliminamos los estados inalcanzables del estado inicial. Para eso, obtenemos los estados alcanzables desde el estado inicial y luego actualizamos los estados y la función de transición considerando solo los estados alcanzables.
 2. Para minimizar AFD, calculamos las clases de equivalencia 0, las clases de equivalencia 1... hasta que no necesitemos más divisiones.
 3. Primero dividimos los estados final y no final. Luego, en cada iteración verificamos si los estados en el mismo grupo pasan a estados en el mismo grupo. Si no lo son, dividimos los estados considerados.
