@@ -3,7 +3,7 @@ Conversion de Expresion Regular a un NFA
 Ricardo Leguizamon - Diego Seo, Compiladores 2022
 '''
 
-import json
+import json #trabajamos con archivos.json de entrada y salida
 import sys #interectuamos con el interprete para leer el archivo de entrada desde la terminal directamente
 
 
@@ -73,9 +73,12 @@ def compPrecedence(a, b):
     p = ["+", ".", "*"]
     return p.index(a) > p.index(b)
 
+'''
+en esta funcion compute_regex sacamos nuestro regex teniendo de forma postfija
 
+'''
 def compute_regex(exp_t):
-    # returns E-NFA
+    
     if exp_t.charType == charType.CONCAT:
         return do_concat(exp_t)
     elif exp_t.charType == charType.UNION:
@@ -85,7 +88,40 @@ def compute_regex(exp_t):
     else:
         return eval_symbol(exp_t)
 
+'''
+def starNFA(NFA):
+    s = ['Q0']
+    for i in range(len(NFA['estados'])):
+        effective_state = 'Q'+str(i+1)
+        s.append(effective_state)
+    
+    index = 1+len(NFA['estados'])
+    only_final_state = 'Q'+str(index)
+    s.append(only_final_state)
 
+    l = [ letter for letter in NFA['simbolos'] ]
+    ss = ['Q0']
+    fs = [only_final_state]
+
+    tm = []
+    for arc in NFA['matriz_transicion']:
+        [os, il, ns] = arc
+        n_os = 'Q'+ str(1+int(os[1:]))
+        n_ns = 'Q'+ str(1+int(ns[1:]))
+        tm.append([n_os, il, n_ns ])
+    
+    for st_state in NFA['estado_inicial']:
+        tm.append(['Q0','$','Q'+ str(1+int(st_state[1:]))])
+    tm.append(['Q0','$',only_final_state])
+
+    for fn_state in NFA['estado_final']:
+        tm.append(['Q'+ str(1+int(fn_state[1:])),'$',only_final_state])
+        for st_state in NFA['estado_inicial']:
+            tm.append(['Q'+ str(1+int(fn_state[1:])),'$','Q'+ str(1+int(st_state[1:]))])
+    
+    return objectNFA(s, l, tm, ss, fs) #simbols, letters, start, final
+
+'''
 def eval_symbol(exp_t):
     start = Estado_AFN()
     end = Estado_AFN()
@@ -128,7 +164,7 @@ def do_kleene_star(exp_t):
     return start, end
 
 
-def arrange_transitions(state, states_done, symbol_table):
+def transiciones_m(state, states_done, symbol_table):
     global afn
 
     if state in states_done:
@@ -142,14 +178,14 @@ def arrange_transitions(state, states_done, symbol_table):
         for ns in state.next_state[symbol]:
             if ns not in symbol_table:
                 symbol_table[ns] = sorted(symbol_table.values())[-1] + 1
-                q_state = "Q" + str(symbol_table[ns])
-                afn['estados'].append(q_state)
+                q_actual = "Q" + str(symbol_table[ns])
+                afn['estados'].append(q_actual)
             afn['transiciones'].append(["Q" + str(symbol_table[state]), symbol, "Q" + str(symbol_table[ns])])
 
         for ns in state.next_state[symbol]:
-            arrange_transitions(ns, states_done, symbol_table)
+            transiciones_m(ns, states_done, symbol_table)
 
-def notation_to_num(str):
+def a_num(str):
     return int(str[1:])
 
 
@@ -173,9 +209,9 @@ def arrange_nfa(fa):
     afn['estado_final'] = []
     q_1 = "Q" + str(1)
     afn['estados'].append(q_1)
-    arrange_transitions(fa[0], [], {fa[0] : 1})
+    transiciones_m(fa[0], [], {fa[0] : 1})
     
-    st_num = [notation_to_num(i) for i in afn['estados']]
+    st_num = [a_num(i) for i in afn['estados']]
 
     afn["estado_inicial"].append("Q1")
 
@@ -232,14 +268,20 @@ def inf_pos(regexp):
         res += stk.pop()
 
     return res
-
+'''
+polish_regex
+retornamos de forma infija el regex 
+'''
 def polish_regex(regex):
     reg = add_concat(regex)
     regg = inf_pos(reg)
     #print(regg)
     return regg
 
-
+'''
+estas dos definiciones son para el input y output 
+del json 
+'''
 def load_regex():
     with open(sys.argv[1], 'r') as inpjson:
         regex = json.loads(inpjson.read())
@@ -253,7 +295,6 @@ def output_nfa():
 if __name__ == "__main__":
     r = load_regex()
     reg = r['regex']
-    
     pr = polish_regex(reg)
     et = exp_tree(pr)
     fa = compute_regex(et)
