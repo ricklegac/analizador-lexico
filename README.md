@@ -1,4 +1,4 @@
-# Asignación de teoría de autómatas
+![#1589F0] # Asignación de teoría de autómatas `#1589F0`
 
 ## Conversiones cubiertas:
 
